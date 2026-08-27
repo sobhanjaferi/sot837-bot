@@ -3,7 +3,7 @@
 import { createContext } from "react";
 
 export type MessageType = {
-  id: string;
+  id: number | string;
   date: string;
   time: string;
   content: string;

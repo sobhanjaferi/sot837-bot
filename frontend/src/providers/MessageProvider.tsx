@@ -15,7 +15,7 @@ export default function MessageProvider({
     setMessages((old) => [...old, message]);
 
     try {
-      await FetchData("http://localhost:5000/history", {
+      await FetchData("http://localhost:8000/api/messages/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,10 +31,10 @@ export default function MessageProvider({
     const handleGetData = async () => {
       try {
         const res = await FetchData<MessageType[]>(
-          "http://localhost:5000/history",
+          "http://localhost:8000/api/messages/",
         );
 
-        setMessages(res);
+        setMessages(res.reverse());
       } catch (error) {
         console.error("Failed to get messages:", error);
       }
