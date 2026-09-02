@@ -1,4 +1,4 @@
-import { MessageType } from "@/contexts/MessageContext";
+import { MessageType } from "@/store/MessageStore";
 import { ReactNode } from "react";
 
 type Props = Pick<MessageType, "content" | "type">;
