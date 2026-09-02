@@ -5,7 +5,7 @@ const db = require("./db");
 
 const app = express();
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
 app.use(cors());
 app.use(express.json());
@@ -192,6 +192,6 @@ app.delete("/api/messages/:id", (req, res) => {
 // START SERVER
 // ============================
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
