@@ -1,15 +1,14 @@
 "use client";
 
 import IconButton from "@/components/IconButton";
-import { MessageContext } from "@/contexts/MessageContext";
 import { getDate } from "@/data/date";
+import { useMessageStore } from "@/store/MessageStore";
 import { ArrowUp } from "lucide-react";
 import {
   ChangeEvent,
   FormEvent,
   KeyboardEvent,
   ReactNode,
-  use,
   useRef,
   useState,
 } from "react";
@@ -25,7 +24,7 @@ export default function TextBox(): ReactNode {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isIptEmpty, setIsIptEmpty] = useState<string>("");
   const [data, setData] = useState<BotMessage | null>(null);
-  const { handleAddMessage } = use(MessageContext);
+  const handleAddMessage = useMessageStore((state) => state.handleAddMessage);
 
   const formRef = useRef<HTMLFormElement>(null);
 
