@@ -11,11 +11,11 @@ export default function MessageItem({
 
   return (
     <li
-      className={`w-full ${isUser ? "pl-10" : "pr-10"}`}
+      className={`w-full ${isUser ? "pl-15" : "pr-15"}`}
       dir={isUser ? "rtl" : "ltr"}
     >
       <p
-        className={`p-3 w-fit rounded-2xl ${
+        className={`p-3 w-fit max-w-full rounded-2xl ${
           isUser
             ? "bg-green-600 text-white"
             : "bg-gray-100 dark:bg-white/20 border border-gray-300 dark:border-gray-600"

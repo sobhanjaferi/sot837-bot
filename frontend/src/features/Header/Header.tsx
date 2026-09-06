@@ -17,7 +17,7 @@ export default function Header(): ReactNode {
   return (
     <div className="absolute w-full z-10">
       <header
-        className={`w-full p-5 border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-black lg:rounded-b-none ${isOpenHistory ? "rounded-b-none" : "shadow-md"} rounded-3xl absolute flex justify-start items-center gap-5 transition-all duration-300`}
+        className={`w-full p-5 border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-black lg:rounded-b-none ${isOpenHistory ? "rounded-b-none" : "shadow-md"} rounded-3xl absolute flex justify-start items-center gap-5 transition-all duration-300 ease-in-out`}
       >
         <div className="flex justify-start items-center gap-3">
           <Image
@@ -43,11 +43,10 @@ export default function Header(): ReactNode {
       </header>
 
       <div
-        className={`translate-y-25 transition-all duration-500 ease-in-out ${!isOpenHistory && "-z-10 bg-white/0 dark:bg-black/0 "} dark:bg-black lg:hidden`}
+        className={`translate-y-25 transition-all duration-300 ease-in-out dark:bg-black lg:hidden`}
       >
         <History
-          className={`max-h-65 shadow-lg shadow-gray-600 dark:shadow-white/10 transition-all duration-500 ease-in-out p-3 ${isOpenHistory ? "h-65" : "h-0 opacity-0 dark:bg-black/0"}`}
-          listClassName="h-45 pr-2"
+          className={`shadow-lg shadow-gray-600 dark:shadow-white/10 transition-all duration-500 ease-in-out ${isOpenHistory ? "h-65 p-3" : "h-0 opacity-0"}`}
         />
       </div>
     </div>
