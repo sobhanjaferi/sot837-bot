@@ -70,7 +70,7 @@ export default function TextBox(): ReactNode {
 
     handleAddMessage({
       id: v4(),
-      date: `${year}/${month}/${day}`,
+      date: `${year}-${month}-${day}`,
       time: `${hours}:${minutes}`,
       content: message,
       type: "user",
@@ -97,7 +97,7 @@ export default function TextBox(): ReactNode {
       if (botRes.message) {
         handleAddMessage({
           id: v4(),
-          date: `${year}/${month}/${day}`,
+          date: `${year}-${month}-${day}`,
           time: `${hours}:${minutes}`,
           content: botRes.message,
           type: "bot",
@@ -113,7 +113,11 @@ export default function TextBox(): ReactNode {
   };
 
   return (
-    <form className="relative w-full" onSubmit={handleSubmit} ref={formRef}>
+    <form
+      className="relative w-full flex flex-col justify-center items-center"
+      onSubmit={handleSubmit}
+      ref={formRef}
+    >
       {data?.typeError && !isIptEmpty.trim() && (
         <p className="text-red-600 font-bold mb-3">{data.typeError}</p>
       )}
@@ -139,7 +143,7 @@ export default function TextBox(): ReactNode {
 
       <IconButton
         type="submit"
-        className="absolute bottom-3.75 right-2 p-1 rounded-full bg-green-600 text-white"
+        className={`absolute right-2 p-1 rounded-full bg-green-600 text-white ${data?.typeError ? "bottom-2.25" : ""}`}
       >
         <ArrowUp size={23} />
       </IconButton>
