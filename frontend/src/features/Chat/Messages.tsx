@@ -7,15 +7,18 @@ import { useMessageStore } from "@/store/MessageStore";
 export default function Messages(): ReactNode {
   const messages = useMessageStore((state) => state.messages);
   const handleGetMessage = useMessageStore((state) => state.handleGetMessage);
+  const chatRoomId = useMessageStore((state) => state.chatRoomId);
 
   useEffect(() => {
-    handleGetMessage();
-  }, [handleGetMessage]);
+    if (!chatRoomId) return;
+
+    handleGetMessage(chatRoomId);
+  }, [handleGetMessage, chatRoomId]);
 
   return (
     <ul className="w-full h-full flex flex-col justify-start items-center gap-7 p-5 mt-25">
       {messages.map((message) => (
-        <MessageItem {...message} key={message.id} />
+        <MessageItem {...message} key={message?.id} />
       ))}
     </ul>
   );

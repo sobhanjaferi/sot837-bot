@@ -2,47 +2,67 @@
 
 import { FetchData } from "@/helpers/FetchData";
 import { create } from "zustand";
-
-export type MessageType = {
-  id: number | string;
-  date: string;
-  time: string;
-  content: string;
-  type: "user" | "bot";
-};
+import { ChatsType, MessagesType, MessageType } from "../../types/chat";
 
 export type MessageStoreType = {
-  messages: MessageType[];
-  handleGetMessage: () => Promise<void>;
+  messages: MessagesType;
+  chatRoomId: number | null;
+  handleGetMessage: (chatId?: number) => Promise<void>;
   handleAddMessage: (message: MessageType) => Promise<void>;
 };
 
 export const useMessageStore = create<MessageStoreType>()((set) => ({
   messages: [],
+  chatRoomId: null,
 
-  handleGetMessage: async () => {
+  handleGetMessage: async (chatId) => {
     try {
-      const res = await FetchData<MessageType[]>(
-        "https://sot837-bot.onrender.com/api/messages/",
+      if (chatId) {
+        set({
+          messages: [],
+          chatRoomId: chatId,
+        });
+
+        const messages = await FetchData<MessagesType>(
+          `http://localhost:8000/api/chats/${chatId}/messages`,
+        );
+        set({ messages, chatRoomId: chatId });
+
+        return;
+      }
+
+      const chats = await FetchData<ChatsType>(
+        `http://localhost:8000/api/chats`,
       );
 
-      set({ messages: res.reverse() });
+      const lastChat = chats[0];
+
+      if (!lastChat) {
+        set({ messages: [], chatRoomId: null });
+        return;
+      }
+
+      const messages = await FetchData<MessagesType>(
+        `http://localhost:8000/api/chats/${lastChat.id}/messages`,
+      );
+
+      set({ messages, chatRoomId: lastChat.id });
     } catch (error) {
       console.error("Failed to get messages:", error);
     }
   },
 
   handleAddMessage: async (message: MessageType): Promise<void> => {
-    set((state) => ({ messages: [...state.messages, message] }));
-
     try {
-      await FetchData("https://sot837-bot.onrender.com/api/messages/", {
+      await FetchData(`http://localhost:8000/api/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(message),
       });
+
+      set((state) => ({ messages: [...state.messages, message] }));
     } catch (error) {
       console.error("Failed to send messages:", error);
     }

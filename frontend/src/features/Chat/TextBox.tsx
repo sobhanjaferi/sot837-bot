@@ -12,7 +12,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { v4 } from "uuid";
 
 export type BotMessage = {
   error?: string;
@@ -25,6 +24,7 @@ export default function TextBox(): ReactNode {
   const [isIptEmpty, setIsIptEmpty] = useState<string>("");
   const [data, setData] = useState<BotMessage | null>(null);
   const handleAddMessage = useMessageStore((state) => state.handleAddMessage);
+  const chatRoomId = useMessageStore((state) => state.chatRoomId);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -68,13 +68,15 @@ export default function TextBox(): ReactNode {
       return;
     }
 
-    handleAddMessage({
-      id: v4(),
-      date: `${year}-${month}-${day}`,
-      time: `${hours}:${minutes}`,
-      content: message,
-      type: "user",
-    });
+    if (chatRoomId) {
+      handleAddMessage({
+        chat_id: chatRoomId,
+        date: `${year}-${month}-${day}`,
+        time: `${hours}:${minutes}`,
+        content: message,
+        type: "user",
+      });
+    }
     resetTextarea();
     setData(null);
 
@@ -95,13 +97,15 @@ export default function TextBox(): ReactNode {
       }
 
       if (botRes.message) {
-        handleAddMessage({
-          id: v4(),
-          date: `${year}-${month}-${day}`,
-          time: `${hours}:${minutes}`,
-          content: botRes.message,
-          type: "bot",
-        });
+        if (chatRoomId) {
+          handleAddMessage({
+            chat_id: chatRoomId,
+            date: `${year}-${month}-${day}`,
+            time: `${hours}:${minutes}`,
+            content: botRes.message,
+            type: "bot",
+          });
+        }
       }
 
       setData(botRes);

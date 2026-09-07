@@ -1,5 +1,5 @@
-import { MessageType } from "@/store/MessageStore";
 import { ReactNode } from "react";
+import { MessageType } from "../../../types/chat";
 
 type Props = Pick<MessageType, "content" | "type">;
 
@@ -7,7 +7,7 @@ export default function MessageItem({
   content: message,
   type,
 }: Props): ReactNode {
-  const isUser = type === "user";
+  const isUser: boolean = type === "user";
 
   return (
     <li
