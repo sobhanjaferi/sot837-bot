@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const config = {
-  matcher: ["/", "/auth/login"],
+  matcher: ["/chat", "/", "/auth/login"],
 };
 
 export function middleware(req: NextRequest) {
   const cookie = req.cookies.get("AUTH_TOKEN");
   const isAuthPage = req.nextUrl.pathname === "/auth/login";
+  const isHomePage = req.nextUrl.pathname === "/";
 
   if (cookie) {
-    if (isAuthPage) {
-      return NextResponse.redirect(new URL("/", req.url));
+    if (isAuthPage || isHomePage) {
+      return NextResponse.redirect(new URL("/chat", req.url));
     }
     return NextResponse.next();
   }
