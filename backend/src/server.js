@@ -7,29 +7,257 @@ const app = express();
 
 const PORT = process.env.PORT || 8000;
 
+// ============================
+// MIDDLEWARE
+// ============================
+
 app.use(cors());
 app.use(express.json());
 
+// ==================================================
+// CHAT ROUTES
+// ==================================================
+
 // ============================
-// GET ALL MESSAGES
-// GET /api/messages
+// GET ALL CHATS
+// GET /api/chats
 // ============================
 
-app.get("/api/messages", (req, res) => {
+app.get("/api/chats", (req, res) => {
   const sql = `
-    SELECT id, content, type, date, time
-    FROM messages
-    ORDER BY id ASC
+    SELECT
+      id,
+      title,
+      created_at
+    FROM chats
+    ORDER BY id DESC
   `;
 
   db.all(sql, [], (err, rows) => {
     if (err) {
+      console.error(err);
+
       return res.status(500).json({
         message: "Database error",
       });
     }
 
     res.json(rows);
+  });
+});
+
+// ============================
+// GET ONE CHAT
+// GET /api/chats/:id
+// ============================
+
+app.get("/api/chats/:id", (req, res) => {
+  const { id } = req.params;
+
+  const sql = `
+    SELECT
+      id,
+      title,
+      created_at
+    FROM chats
+    WHERE id = ?
+  `;
+
+  db.get(sql, [id], (err, row) => {
+    if (err) {
+      console.error(err);
+
+      return res.status(500).json({
+        message: "Database error",
+      });
+    }
+
+    if (!row) {
+      return res.status(404).json({
+        message: "Chat not found",
+      });
+    }
+
+    res.json(row);
+  });
+});
+
+// ============================
+// CREATE CHAT
+// POST /api/chats
+// ============================
+
+app.post("/api/chats", (req, res) => {
+  const title = req.body.title?.trim() || "New Chat";
+
+  const sql = `
+    INSERT INTO chats (title)
+    VALUES (?)
+  `;
+
+  db.run(sql, [title], function (err) {
+    if (err) {
+      console.error(err);
+
+      return res.status(500).json({
+        message: "Database error",
+      });
+    }
+
+    db.get(
+      `
+        SELECT
+          id,
+          title,
+          created_at
+        FROM chats
+        WHERE id = ?
+      `,
+      [this.lastID],
+      (err, chat) => {
+        if (err) {
+          console.error(err);
+
+          return res.status(500).json({
+            message: "Database error",
+          });
+        }
+
+        res.status(201).json(chat);
+      },
+    );
+  });
+});
+
+// ============================
+// UPDATE CHAT
+// PUT /api/chats/:id
+// ============================
+
+app.put("/api/chats/:id", (req, res) => {
+  const { id } = req.params;
+  const title = req.body.title?.trim();
+
+  if (!title) {
+    return res.status(400).json({
+      message: "Title is required",
+    });
+  }
+
+  const sql = `
+    UPDATE chats
+    SET title = ?
+    WHERE id = ?
+  `;
+
+  db.run(sql, [title, id], function (err) {
+    if (err) {
+      console.error(err);
+
+      return res.status(500).json({
+        message: "Database error",
+      });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({
+        message: "Chat not found",
+      });
+    }
+
+    res.json({
+      id: Number(id),
+      title,
+    });
+  });
+});
+
+// ============================
+// DELETE CHAT
+// DELETE /api/chats/:id
+// ============================
+
+app.delete("/api/chats/:id", (req, res) => {
+  const { id } = req.params;
+
+  const sql = `
+    DELETE FROM chats
+    WHERE id = ?
+  `;
+
+  db.run(sql, [id], function (err) {
+    if (err) {
+      console.error(err);
+
+      return res.status(500).json({
+        message: "Database error",
+      });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({
+        message: "Chat not found",
+      });
+    }
+
+    res.json({
+      message: "Chat deleted successfully",
+    });
+  });
+});
+
+// ==================================================
+// MESSAGE ROUTES
+// ==================================================
+
+// ============================
+// GET CHAT MESSAGES
+// GET /api/chats/:chatId/messages
+// ============================
+
+app.get("/api/chats/:chatId/messages", (req, res) => {
+  const { chatId } = req.params;
+
+  // اول بررسی می‌کنیم Chat وجود دارد
+  db.get("SELECT id FROM chats WHERE id = ?", [chatId], (err, chat) => {
+    if (err) {
+      console.error(err);
+
+      return res.status(500).json({
+        message: "Database error",
+      });
+    }
+
+    if (!chat) {
+      return res.status(404).json({
+        message: "Chat not found",
+      });
+    }
+
+    const sql = `
+        SELECT
+          id,
+          chat_id,
+          content,
+          type,
+          date,
+          time
+        FROM messages
+        WHERE chat_id = ?
+        ORDER BY id ASC
+      `;
+
+    db.all(sql, [chatId], (err, rows) => {
+      if (err) {
+        console.error(err);
+
+        return res.status(500).json({
+          message: "Database error",
+        });
+      }
+
+      res.json(rows);
+    });
   });
 });
 
@@ -41,29 +269,35 @@ app.get("/api/messages", (req, res) => {
 app.get("/api/messages/:id", (req, res) => {
   const { id } = req.params;
 
-  db.get(
-    `
-    SELECT id, content, type, date, time
+  const sql = `
+    SELECT
+      id,
+      chat_id,
+      content,
+      type,
+      date,
+      time
     FROM messages
     WHERE id = ?
-    `,
-    [id],
-    (err, row) => {
-      if (err) {
-        return res.status(500).json({
-          message: "Database error",
-        });
-      }
+  `;
 
-      if (!row) {
-        return res.status(404).json({
-          message: "Message not found",
-        });
-      }
+  db.get(sql, [id], (err, row) => {
+    if (err) {
+      console.error(err);
 
-      res.json(row);
-    },
-  );
+      return res.status(500).json({
+        message: "Database error",
+      });
+    }
+
+    if (!row) {
+      return res.status(404).json({
+        message: "Message not found",
+      });
+    }
+
+    res.json(row);
+  });
 });
 
 // ============================
@@ -72,38 +306,67 @@ app.get("/api/messages/:id", (req, res) => {
 // ============================
 
 app.post("/api/messages", (req, res) => {
-  const { content, type, date, time } = req.body;
+  const { chat_id, content, type, date, time } = req.body;
 
-  if (!content || !type || !date || !time) {
+  // بررسی فیلدها
+  if (!chat_id || !content || !type || !date || !time) {
     return res.status(400).json({
       message: "All fields are required",
     });
   }
 
+  // بررسی type
   if (type !== "user" && type !== "bot") {
     return res.status(400).json({
       message: "type must be user or bot",
     });
   }
 
-  const sql = `
-    INSERT INTO messages (content, type, date, time)
-    VALUES (?, ?, ?, ?)
-  `;
-
-  db.run(sql, [content, type, date, time], function (err) {
+  // بررسی وجود Chat
+  db.get("SELECT id FROM chats WHERE id = ?", [chat_id], (err, chat) => {
     if (err) {
+      console.error(err);
+
       return res.status(500).json({
         message: "Database error",
       });
     }
 
-    res.status(201).json({
-      id: this.lastID,
-      content,
-      type,
-      date,
-      time,
+    if (!chat) {
+      return res.status(404).json({
+        message: "Chat not found",
+      });
+    }
+
+    // ذخیره پیام
+    const sql = `
+        INSERT INTO messages (
+          chat_id,
+          content,
+          type,
+          date,
+          time
+        )
+        VALUES (?, ?, ?, ?, ?)
+      `;
+
+    db.run(sql, [chat_id, content, type, date, time], function (err) {
+      if (err) {
+        console.error(err);
+
+        return res.status(500).json({
+          message: "Database error",
+        });
+      }
+
+      res.status(201).json({
+        id: this.lastID,
+        chat_id: Number(chat_id),
+        content,
+        type,
+        date,
+        time,
+      });
     });
   });
 });
@@ -115,6 +378,7 @@ app.post("/api/messages", (req, res) => {
 
 app.put("/api/messages/:id", (req, res) => {
   const { id } = req.params;
+
   const { content, type, date, time } = req.body;
 
   if (!content || !type || !date || !time) {
@@ -131,15 +395,18 @@ app.put("/api/messages/:id", (req, res) => {
 
   const sql = `
     UPDATE messages
-    SET content = ?,
-        type = ?,
-        date = ?,
-        time = ?
+    SET
+      content = ?,
+      type = ?,
+      date = ?,
+      time = ?
     WHERE id = ?
   `;
 
   db.run(sql, [content, type, date, time, id], function (err) {
     if (err) {
+      console.error(err);
+
       return res.status(500).json({
         message: "Database error",
       });
@@ -169,8 +436,15 @@ app.put("/api/messages/:id", (req, res) => {
 app.delete("/api/messages/:id", (req, res) => {
   const { id } = req.params;
 
-  db.run("DELETE FROM messages WHERE id = ?", [id], function (err) {
+  const sql = `
+    DELETE FROM messages
+    WHERE id = ?
+  `;
+
+  db.run(sql, [id], function (err) {
     if (err) {
+      console.error(err);
+
       return res.status(500).json({
         message: "Database error",
       });
@@ -188,9 +462,9 @@ app.delete("/api/messages/:id", (req, res) => {
   });
 });
 
-// ============================
+// ==================================================
 // START SERVER
-// ============================
+// ==================================================
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
