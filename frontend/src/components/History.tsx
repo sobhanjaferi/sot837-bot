@@ -2,9 +2,10 @@
 
 import { ComponentProps, ReactElement, useEffect, useState } from "react";
 import Button from "./Button";
-import { getDate } from "@/data/date";
 import { FetchData } from "@/helpers/FetchData";
-import { MessageType } from "@/store/MessageStore";
+import { ChatsType } from "../../types/chat";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 type Props = ComponentProps<"ul"> & {
   buttonClassName?: string;
@@ -17,32 +18,17 @@ export default function History({
   listClassName,
   ...otherProps
 }: Props): ReactElement {
-  const { year, month, day, hours, minutes } = getDate();
-  const [toDay, setToDay] = useState<MessageType[]>([]);
+  const [history, setHistory] = useState<ChatsType>([]);
 
   useEffect(() => {
-    const handleChangeDate = async (): Promise<void> => {
-      const handleFetch = async (): Promise<MessageType[]> => {
-        const getHistory = await FetchData<MessageType[]>(
-          "http://localhost:8000/api/messages",
-        );
+    const handleFetch = async () => {
+      const res = await FetchData<ChatsType>("http://localhost:8000/api/chats");
 
-        return getHistory;
-      };
-
-      const data = await handleFetch();
-      const freshDate: string = `${year}-${month}-${day}`;
-      const time: string = `${hours}:${minutes}`;
-
-      const todayMessages: MessageType[] = data.filter(
-        (item) => item.date === freshDate,
-      );
-
-      setToDay(todayMessages);
+      setHistory(res);
     };
 
-    handleChangeDate();
-  }, [year, month, day]);
+    handleFetch();
+  }, []);
 
   return (
     <div
@@ -58,25 +44,18 @@ export default function History({
         className={`flex w-full flex-col items-end justify-start gap-3 pr-2 text-right ${listClassName}`}
         {...otherProps}
       >
-        {toDay.length !== 0 && (
-          <h2 className="text-lg text-gray-600 dark:text-gray-500">امروز</h2>
-        )}
+        <h2 className="text-lg text-gray-600 dark:text-gray-500">امروز</h2>
 
-        {toDay.map((chat) => {
-          const words = chat.content.split(" ");
-          const shortText =
-            words.length > 2 ? words.slice(0, 5).join(" ") + " ..." : words;
-
-          return (
-            <li
-              key={chat.id}
-              dir="rtl"
-              className="w-full rounded-lg bg-gray-200 px-5 py-3 dark:bg-white/10"
-            >
-              {shortText}
-            </li>
-          );
-        })}
+        {history.map((item) => (
+          <li
+            onClick={() => redirect(`/chat/${item.id}`)}
+            key={item.id}
+            dir="rtl"
+            className="w-full rounded-lg bg-gray-200 px-5 py-3 dark:bg-white/10 cursor-pointer active:opacity-30"
+          >
+            {item.title}
+          </li>
+        ))}
       </ul>
     </div>
   );
