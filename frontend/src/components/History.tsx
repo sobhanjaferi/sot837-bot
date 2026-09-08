@@ -4,7 +4,6 @@ import { ComponentProps, ReactElement, useEffect, useState } from "react";
 import Button from "./Button";
 import { FetchData } from "@/helpers/FetchData";
 import { ChatsType } from "../../types/chat";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 type Props = ComponentProps<"ul"> & {
