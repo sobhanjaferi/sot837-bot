@@ -1,0 +1,19 @@
+{
+  "history": [
+    {
+      "id": "5NmhGa9aqtw",
+      "date": "2026/8/27",
+      "time": "01:34",
+      "content": "hi",
+      "type": "user"
+    },
+    {
+      "id": "sgKnbkWxpFk",
+      "date": "2026/8/27",
+      "time": "01:34",
+      "content": "Hello! How can I help you today?",
+      "type": "bot"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
