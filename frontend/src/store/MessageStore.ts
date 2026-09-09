@@ -2,7 +2,12 @@
 
 import { FetchData } from "@/helpers/FetchData";
 import { create } from "zustand";
-import { ChatsType, MessagesType, MessageType } from "../../types/chat";
+import {
+  ChatsType,
+  ChatType,
+  MessagesType,
+  MessageType,
+} from "../../types/chat";
 
 export type MessageStoreType = {
   messages: MessagesType;
@@ -26,6 +31,7 @@ export const useMessageStore = create<MessageStoreType>()((set) => ({
         const messages = await FetchData<MessagesType>(
           `http://localhost:8000/api/chats/${chatId}/messages`,
         );
+
         set({ messages, chatRoomId: chatId });
 
         return;
@@ -62,9 +68,27 @@ export const useMessageStore = create<MessageStoreType>()((set) => ({
         body: JSON.stringify(message),
       });
 
-      set((state) => ({ messages: [...state.messages, message] }));
+      set((state) => ({
+        messages: [...state.messages, message],
+      }));
+
+      const chat = await FetchData<ChatType>(
+        `http://localhost:8000/api/chats/${message.chat_id}`,
+      );
+
+      if (chat.title === "New Chat") {
+        await FetchData(`http://localhost:8000/api/chats/${message.chat_id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: message.content,
+          }),
+        });
+      }
     } catch (error) {
-      console.error("Failed to send messages:", error);
+      console.error("Failed to send message:", error);
     }
   },
 }));

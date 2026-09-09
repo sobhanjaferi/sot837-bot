@@ -1,10 +1,9 @@
 "use client";
 
-import { ComponentProps, ReactElement, useEffect, useState } from "react";
+import { ComponentProps, ReactElement, useEffect } from "react";
 import Button from "./Button";
-import { FetchData } from "@/helpers/FetchData";
-import { ChatsType } from "../../types/chat";
-import { redirect } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
+import { useChatStore } from "@/store/ChatStore";
 
 type Props = ComponentProps<"ul"> & {
   buttonClassName?: string;
@@ -17,23 +16,30 @@ export default function History({
   listClassName,
   ...otherProps
 }: Props): ReactElement {
-  const [history, setHistory] = useState<ChatsType>([]);
+  const history = useChatStore((state) => state.chats);
+
+  const handleGetChats = useChatStore((state) => state.handleGetChats);
+  const handleAddChat = useChatStore((state) => state.handleAddChat);
 
   useEffect(() => {
-    const handleFetch = async () => {
-      const res = await FetchData<ChatsType>("http://localhost:8000/api/chats");
+    handleGetChats();
+  }, [handleGetChats]);
 
-      setHistory(res);
-    };
+  const handleAction = async () => {
+    const chat = await handleAddChat();
 
-    handleFetch();
-  }, []);
+    redirect(`/chat/${chat.id}`);
+  };
+
+  const url = usePathname();
 
   return (
-    <div
+    <form
+      action={handleAction}
       className={`w-full overflow-auto bg-white dark:bg-white/0 ${className}`}
     >
       <Button
+        type="submit"
         className={`mb-5 w-full cursor-pointer rounded-xl border border-gray-400 p-2 text-lg text-cyan-700 transition-all duration-150 ease-in-out hover:-translate-y-1 active:opacity-30 dark:border-gray-500 dark:text-cyan-500 ${buttonClassName}`}
       >
         گفتگو جدید +
@@ -50,12 +56,12 @@ export default function History({
             onClick={() => redirect(`/chat/${item.id}`)}
             key={item.id}
             dir="rtl"
-            className="w-full rounded-lg bg-gray-200 px-5 py-3 dark:bg-white/10 cursor-pointer active:opacity-30"
+            className={`w-full rounded-lg ${url == `/chat/${item.id}` ? "bg-gray-400 dark:bg-white/30" : "bg-gray-200 dark:bg-white/10"} px-5 py-3  cursor-pointer active:opacity-30`}
           >
             {item.title}
           </li>
         ))}
       </ul>
-    </div>
+    </form>
   );
 }

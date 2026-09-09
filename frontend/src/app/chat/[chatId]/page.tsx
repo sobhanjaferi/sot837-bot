@@ -13,8 +13,6 @@ export default function ChatRoomPage(): ReactElement {
   useEffect(() => {
     if (!chatId) return;
 
-    console.log("Loading chat:", chatId);
-
     handleGetMessage(Number(chatId));
   }, [chatId, handleGetMessage]);
 
